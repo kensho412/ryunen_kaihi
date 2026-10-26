@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#3949ab" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="SFC体育" />
+  <title>SFC体育ビューア</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon-180.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ロック画面 -->
+  <section id="lock" class="lock" hidden>
+    <div class="lock-card">
+      <div class="logo">体</div>
+      <h1>SFC体育ビューア</h1>
+      <p class="muted">データは暗号化されています。設定したパスフレーズを入力してください。</p>
+      <form id="lock-form">
+        <input id="pass" type="password" autocomplete="current-password" placeholder="パスフレーズ" required />
+        <label class="check"><input id="remember" type="checkbox" checked /> この端末に記憶する</label>
+        <button type="submit">開く</button>
+        <p id="lock-err" class="err" hidden></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- メイン -->
+  <div id="app" hidden>
+    <header class="top">
+      <div>
+        <h1>SFC体育</h1>
+        <p id="updated" class="muted small"></p>
+      </div>
+      <a class="btn-ghost" href="https://wellness.sfc.keio.ac.jp/v4/index.php" target="_blank" rel="noopener">公式で予約 ↗</a>
+    </header>
+    <p id="banner" class="banner" hidden></p>
+
+    <main>
+      <section id="tab-mine" class="tab"></section>
+      <section id="tab-open" class="tab" hidden></section>
+      <section id="tab-tt" class="tab" hidden></section>
+      <section id="tab-set" class="tab" hidden></section>
+    </main>
+
+    <nav class="tabbar">
+      <button data-tab="mine" class="on"><span>📋</span>予約</button>
+      <button data-tab="open"><span>🟢</span>空き</button>
+      <button data-tab="tt"><span>🗓</span>時間割</button>
+      <button data-tab="set"><span>🔔</span>通知</button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
