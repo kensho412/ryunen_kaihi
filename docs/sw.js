@@ -1,5 +1,5 @@
 // アプリ本体はキャッシュ、データは常にネット優先（オフライン時のみキャッシュ）
-const CACHE = "sfcw-v2";
+const CACHE = "sfcw-v3";
 const SHELL = ["./", "index.html", "style.css", "app.js", "icon.svg", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())));

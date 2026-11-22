@@ -22,7 +22,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from wellness import Wellness
+from wellness import TwoFactorRequired, Wellness
 
 JST = timezone(timedelta(hours=9))
 OUT = Path(__file__).resolve().parent.parent / "docs" / "data.enc.json"
@@ -160,11 +160,21 @@ def main():
         },
     }
 
+    # メール認証(2FA)を一度検出したら以後ログインしない（毎回認証コードのメールが飛ぶのを防ぐ）
+    blocked = bool(prev and prev.get("login_blocked"))
+    cur["login_blocked"] = blocked
     user, pw = os.environ.get("WELLNESS_USER"), os.environ.get("WELLNESS_PASS")
-    if user and pw:
+    if blocked:
+        cur["error"] = "メール認証が必要なため自動ログインを停止中"
+        cur["mine"] = prev.get("mine")
+    elif user and pw:
         try:
             w.login(user, pw)
             cur["mine"] = w.mine()
+        except TwoFactorRequired as e:
+            cur["error"] = str(e)
+            cur["login_blocked"] = True
+            cur["mine"] = prev.get("mine") if prev else None
         except Exception as e:
             cur["error"] = str(e)
             cur["mine"] = prev.get("mine") if prev else None

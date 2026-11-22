@@ -23,6 +23,14 @@ def _lines(el):
     return [s.strip() for s in el.get_text().split("\n") if s.strip()]
 
 
+class TwoFactorRequired(RuntimeError):
+    pass
+
+
+def _logged_in(soup):
+    return soup.find("a", href=re.compile(r"mode=logout")) is not None
+
+
 class Wellness:
     def __init__(self):
         self.s = requests.Session()
@@ -119,11 +127,17 @@ class Wellness:
         soup = BeautifulSoup(r.text, "html.parser")
         if soup.find("input", {"type": "password"}):
             raise RuntimeError("ログインに失敗しました（ID/パスワードを確認）")
+        if not _logged_in(soup):
+            # 2026-11-20〜 メール認証コードの入力画面が挟まる。自動では突破しない
+            raise TwoFactorRequired("メール認証が必要になったため自動ログインできません")
         return soup
 
     def mine(self):
         """ログイン後: 授業予定(予約一覧) と 取得状況。"""
-        out = parse_status(self.get(page="status"))
+        soup = self.get(page="status")
+        if not _logged_in(soup):
+            raise TwoFactorRequired("ログイン状態になっていません")
+        out = parse_status(soup)
         out.update(parse_history(self.get(page="history")))
         return out
 

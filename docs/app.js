@@ -68,7 +68,7 @@ function show() {
   $("#app").hidden = false;
   $("#updated").textContent = "更新: " + new Date(data.updated).toLocaleString("ja-JP", { month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit" });
   const b = $("#banner");
-  b.hidden = !data.error;
+  b.hidden = !data.error || data.login_blocked;
   b.textContent = data.error ? "ログイン取得エラー: " + data.error + "（予約状況は前回のもの）" : "";
   renderMine(); renderOpen(); renderTT(); renderSet();
 }
@@ -83,10 +83,23 @@ document.querySelectorAll(".tabbar button").forEach((btn) => btn.addEventListene
 function renderMine() {
   const el = $("#tab-mine");
   const m = data.mine;
+  const official = "https://wellness.sfc.keio.ac.jp/v4/index.php?page=status";
+  if (data.login_blocked) {
+    const note = `<div class="card notice"><b>予約状況の自動取得は停止中です</b>
+      <p class="s">体育システムがログイン時のメール認証を導入したため、自動ログインをやめました。最新の予約状況は公式サイトで確認してください。抽選結果は keio.jp 宛のメールでも届きます。</p>
+      <a class="btn-ghost" href="${official}" target="_blank" rel="noopener">公式の授業予定を開く ↗</a></div>`;
+    if (m == null) { el.innerHTML = note; return; }
+    renderMineBody(el, m, note + `<p class="muted small">以下は停止前に取得した情報です（古い可能性あり）</p>`);
+    return;
+  }
   if (m == null) {
     el.innerHTML = `<div class="empty"><b>ログイン情報が未設定です</b>GitHub Secrets に <code>WELLNESS_USER</code> と <code>WELLNESS_PASS</code> を設定すると、自分の予約状況がここに出ます。</div>`;
     return;
   }
+  renderMineBody(el, m, "");
+}
+
+function renderMineBody(el, m, head) {
   const today = new Date().toLocaleDateString("sv-SE");
   const res = m.reservations.filter((r) => !r.iso || r.iso >= today);
   // 取得中の体育(出欠に「予」がある行、無ければ最後の出欠行)で 15回までの進捗を出す
@@ -105,6 +118,7 @@ function renderMine() {
   const pill = (r) => r.cancelled ? `<span class="pill bad">${esc(r.cancelled)}</span>`
     : `<span class="pill ${r.status.includes("確定") ? "ok" : "few"}">${esc(r.status)}</span>`;
   el.innerHTML = `
+    ${head}
     ${progress}
     <h2>予約中の授業（${res.length}）</h2>
     ${res.length ? res.map((r) => `
